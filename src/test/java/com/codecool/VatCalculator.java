@@ -7,6 +7,7 @@ import org.openqa.selenium.By;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.WebElement;
 import org.openqa.selenium.chrome.ChromeDriver;
+import org.openqa.selenium.support.ui.ExpectedConditions;
 import org.openqa.selenium.support.ui.Select;
 import org.openqa.selenium.support.ui.WebDriverWait;
 
@@ -22,16 +23,27 @@ class VatCalculator {
     private WebDriver driver = new ChromeDriver();
     private WebDriverWait wait = new WebDriverWait(driver, Duration.ofSeconds(10));
 
+    private void waitAndClick(WebElement element) {
+        wait.until(ExpectedConditions.elementToBeClickable(element));
+        element.click();
+    }
 
     private void selectCountry(String country) {
         Select countrySelection = new Select(driver.findElement(By.xpath("//select[@name='Country']")));
         countrySelection.selectByVisibleText(country);
     }
 
+
+    private void click5VatRadioBtn() {
+        WebElement fivePercentVatRadioBtn = driver.findElement(By.xpath("//*[@id='VAT_5']/following-sibling::label"));
+        waitAndClick(fivePercentVatRadioBtn);
+    }
+
     @BeforeEach
     void setup() {
         driver.get("https://www.calkoo.com/en/vat-calculator");
-        driver.findElement(By.xpath("//*[@class='fc-button fc-cta-consent fc-primary-button']")).click();
+        WebElement countrySelector = driver.findElement(By.xpath("//*[@class='fc-button fc-cta-consent fc-primary-button']"));
+        waitAndClick(countrySelector);
         selectCountry("Hungary");
     }
 
@@ -51,12 +63,34 @@ class VatCalculator {
 
     @Test
     public void chosenVatRateAppearsBehindNetpriceLabel() {
-        WebElement fivePercentVatRadioBtn = driver.findElement(By.xpath("//*[@id='VAT_5']/following-sibling::label"));
-        fivePercentVatRadioBtn.click();
+        click5VatRadioBtn();
 
         String expectedNetPriceValue = "× 0.050000";
         String actualNetPriceValue = driver.findElement(By.xpath("//*[@id='VATpct2']")).getAttribute("value");
 
         assertEquals(expectedNetPriceValue, actualNetPriceValue);
+    }
+
+    @Test
+    public void fillingThePriceWithoutVatFieldCalculatesOtherFields() {
+        click5VatRadioBtn();
+
+        WebElement priceWithoutVatRadioBtn = driver.findElement(By.xpath("//*[@id='F1']/following-sibling::label"));
+        waitAndClick(priceWithoutVatRadioBtn);
+
+        WebElement priceWithoutVatInput = driver.findElement(By.xpath("//*[@id='NetPrice']"));
+        waitAndClick(priceWithoutVatInput);
+        priceWithoutVatInput.sendKeys("5");
+
+
+        String expectedValueAddedTaxValue = "0.25";
+        String actualValueAddedTaxValue = driver.findElement(By.xpath("//*[@id='VATsum']")).getAttribute("value");
+
+        String expectedPriceIncludedVatValue = "5.25";
+        String actualPriceIncludedVatValue = driver.findElement(By.xpath("//*[@id='Price']")).getAttribute("value");
+
+        assertEquals(expectedValueAddedTaxValue, actualValueAddedTaxValue);
+        assertEquals(expectedPriceIncludedVatValue, actualPriceIncludedVatValue);
+
     }
 }
