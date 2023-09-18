@@ -34,9 +34,33 @@ class VatCalculator {
     }
 
 
+    private void click18VatRadioBtn() {
+        WebElement fivePercentVatRadioBtn = driver.findElement(By.xpath("//*[@id='VAT_18']/following-sibling::label"));
+        waitAndClick(fivePercentVatRadioBtn);
+    }
+
+    private void click27VatRadioBtn() {
+        WebElement fivePercentVatRadioBtn = driver.findElement(By.xpath("//*[@id='VAT_27']/following-sibling::label"));
+        waitAndClick(fivePercentVatRadioBtn);
+    }
+
     private void click5VatRadioBtn() {
         WebElement fivePercentVatRadioBtn = driver.findElement(By.xpath("//*[@id='VAT_5']/following-sibling::label"));
         waitAndClick(fivePercentVatRadioBtn);
+    }
+
+    private void assertCalculations(String input, String expectedValueAddedTaxValue, String expectedPriceIncludedVatValue) {
+        WebElement priceWithoutVatInput = driver.findElement(By.xpath("//*[@id='NetPrice']"));
+        waitAndClick(priceWithoutVatInput);
+        priceWithoutVatInput.sendKeys(input);
+
+
+        String actualValueAddedTaxValue = driver.findElement(By.xpath("//*[@id='VATsum']")).getAttribute("value");
+
+        String actualPriceIncludedVatValue = driver.findElement(By.xpath("//*[@id='Price']")).getAttribute("value");
+
+        assertEquals(expectedValueAddedTaxValue, actualValueAddedTaxValue);
+        assertEquals(expectedPriceIncludedVatValue, actualPriceIncludedVatValue);
     }
 
     @BeforeEach
@@ -73,24 +97,19 @@ class VatCalculator {
 
     @Test
     public void fillingThePriceWithoutVatFieldCalculatesOtherFields() {
-        click5VatRadioBtn();
 
         WebElement priceWithoutVatRadioBtn = driver.findElement(By.xpath("//*[@id='F1']/following-sibling::label"));
         waitAndClick(priceWithoutVatRadioBtn);
 
-        WebElement priceWithoutVatInput = driver.findElement(By.xpath("//*[@id='NetPrice']"));
-        waitAndClick(priceWithoutVatInput);
-        priceWithoutVatInput.sendKeys("5");
+        click5VatRadioBtn();
+        assertCalculations("5", "0.25", "5.25");
 
+        click18VatRadioBtn();
+        assertCalculations("5", "0.90", "5.90");
 
-        String expectedValueAddedTaxValue = "0.25";
-        String actualValueAddedTaxValue = driver.findElement(By.xpath("//*[@id='VATsum']")).getAttribute("value");
-
-        String expectedPriceIncludedVatValue = "5.25";
-        String actualPriceIncludedVatValue = driver.findElement(By.xpath("//*[@id='Price']")).getAttribute("value");
-
-        assertEquals(expectedValueAddedTaxValue, actualValueAddedTaxValue);
-        assertEquals(expectedPriceIncludedVatValue, actualPriceIncludedVatValue);
+        click27VatRadioBtn();
+        assertCalculations("5", "1.35", "6.35");
 
     }
+
 }
