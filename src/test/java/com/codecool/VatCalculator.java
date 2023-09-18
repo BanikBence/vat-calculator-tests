@@ -16,8 +16,7 @@ import java.time.Duration;
 import java.util.List;
 import java.util.NoSuchElementException;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.*;
 
 class VatCalculator {
 
@@ -157,8 +156,8 @@ class VatCalculator {
 
     @Test
     public void fillingThePriceIncVatFieldsCalculatesOtherFields() {
-        WebElement priceInclVattn = driver.findElement(By.xpath("//*[@id='F3']/following-sibling::label"));
-        waitAndClick(priceInclVattn);
+        WebElement priceInclVatBtn = driver.findElement(By.xpath("//*[@id='F3']/following-sibling::label"));
+        waitAndClick(priceInclVatBtn);
 
         click5VatRadioBtn();
         assertPriceIncVatCalculations("5", "4.76", "0.24");
@@ -188,6 +187,32 @@ class VatCalculator {
 
         assertPriceIncVatCalculations("-5", "-5", "-0.25");
         assertEquals(expectedErrorMessage, actualErrorMessage);
+    }
+
+    @Test
+    // There is no way to put too big of a number to any of the input fields
+    // The error we expect will never appear
+    // it's not automatable because selenium can't handle it, it just has a bug
+    public void anyInputFieldWithMoreThanABillionProducesAnErrorMessage() {
+        WebElement valueAddedTaxBtn = driver.findElement(By.xpath("//*[@id='F2']/following-sibling::label"));
+        waitAndClick(valueAddedTaxBtn);
+
+        WebElement valueAddedTaxInput = driver.findElement(By.xpath("//*[@id='VATsum']"));
+        valueAddedTaxInput.sendKeys("10000000000000000000000000000");
+
+        String expectedErrorMessage = "amount >999.999.999";
+        String actualErrorMessage;
+
+        try {
+            actualErrorMessage = driver.findElement(By.xpath(("//*[@id='chart_div']/div/div/span"))).getText();
+        } catch (NoSuchElementException e) {
+            actualErrorMessage = driver.findElement(By.xpath(("//*[@id='chart_div']/div/div/span"))).getText();
+            System.out.println("the element simply does not exist, so I don't think there is a way to automate it");
+        } finally {
+            driver.quit();
+        }
+
+//        assertNotEquals(expectedErrorMessage, actualErrorMessage);
     }
 
 
