@@ -171,7 +171,7 @@ class VatCalculator {
     }
 
     @Test
-    public void negativeInputInAnyFieldsProducesErrorMessage() throws InterruptedException {
+    public void negativeInputInAnyFieldsProducesErrorMessage() {
         WebElement priceWithoutVatRadioBtn = driver.findElement(By.xpath("//*[@id='F1']/following-sibling::label"));
         waitAndClick(priceWithoutVatRadioBtn);
 
