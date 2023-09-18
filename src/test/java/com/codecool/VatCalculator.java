@@ -4,6 +4,7 @@ import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.openqa.selenium.By;
+import org.openqa.selenium.StaleElementReferenceException;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.WebElement;
 import org.openqa.selenium.chrome.ChromeDriver;
@@ -13,6 +14,7 @@ import org.openqa.selenium.support.ui.WebDriverWait;
 
 import java.time.Duration;
 import java.util.List;
+import java.util.NoSuchElementException;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -54,7 +56,6 @@ class VatCalculator {
         waitAndClick(priceWithoutVatInput);
         priceWithoutVatInput.sendKeys(input);
 
-
         String actualValueAddedTaxValue = driver.findElement(By.xpath("//*[@id='VATsum']")).getAttribute("value");
 
         String actualPriceIncludedVatValue = driver.findElement(By.xpath("//*[@id='Price']")).getAttribute("value");
@@ -63,21 +64,20 @@ class VatCalculator {
         assertEquals(expectedPriceIncludedVatValue, actualPriceIncludedVatValue);
     }
 
-    private void assertValueAddedTaxCalculations(String input, String expectedValueAddedTaxValue, String expectedPriceIncludedVatValue) {
+    private void assertValueAddedTaxCalculations(String input, String expectedPriceWithoutVatValue, String expectedPriceIncludedVatValue) {
         WebElement valueAddedTaxInput = driver.findElement(By.xpath("//*[@id='VATsum']"));
         waitAndClick(valueAddedTaxInput);
         valueAddedTaxInput.sendKeys(input);
-
 
         String actualPriceWithoutVatValue = driver.findElement(By.xpath("//*[@id='NetPrice']")).getAttribute("value");
 
         String actualPriceIncludedVatValue = driver.findElement(By.xpath("//*[@id='Price']")).getAttribute("value");
 
-        assertEquals(expectedValueAddedTaxValue, actualPriceWithoutVatValue);
+        assertEquals(expectedPriceWithoutVatValue, actualPriceWithoutVatValue);
         assertEquals(expectedPriceIncludedVatValue, actualPriceIncludedVatValue);
     }
 
-    private void assertPriceIncVatCalculations(String input, String expectedValueAddedTaxValue, String expectedPriceIncludedVatValue) {
+    private void assertPriceIncVatCalculations(String input, String expectedPriceWithoutVatValue, String expectedPriceIncludedVatValue) {
         WebElement priceIncludedVatInput = driver.findElement(By.xpath("//*[@id='Price']"));
         waitAndClick(priceIncludedVatInput);
         priceIncludedVatInput.sendKeys(input);
@@ -86,7 +86,7 @@ class VatCalculator {
 
         String actualValueAddedTaxValue = driver.findElement(By.xpath("//*[@id='VATsum']")).getAttribute("value");
 
-        assertEquals(expectedValueAddedTaxValue, actualPriceWithoutVatValue);
+        assertEquals(expectedPriceWithoutVatValue, actualPriceWithoutVatValue);
         assertEquals(expectedPriceIncludedVatValue, actualValueAddedTaxValue);
     }
 
@@ -100,7 +100,7 @@ class VatCalculator {
 
     @AfterEach
     void tearDown() {
-        driver.quit();
+        //  driver.quit();
     }
 
     @Test
@@ -168,7 +168,27 @@ class VatCalculator {
 
         click27VatRadioBtn();
         assertPriceIncVatCalculations("5", "3.94", "1.06");
-
     }
+
+    @Test
+    public void negativeInputInAnyFieldsProducesErrorMessage() throws InterruptedException {
+        WebElement priceWithoutVatRadioBtn = driver.findElement(By.xpath("//*[@id='F1']/following-sibling::label"));
+        waitAndClick(priceWithoutVatRadioBtn);
+
+        click5VatRadioBtn();
+        assertPriceWithoutTaxCalculations("-5", "-0.25", "-5.25");
+
+        String expectedErrorMessage = "Negative values are invalid for a pie chart.×";
+        String actualErrorMessage = driver.findElement(By.xpath(("//*[@id='chart_div']/div/div/span"))).getText();
+
+        assertEquals(expectedErrorMessage, actualErrorMessage);
+
+        assertValueAddedTaxCalculations("-5", "-5", "-5.25");
+        assertEquals(expectedErrorMessage, actualErrorMessage);
+
+        assertPriceIncVatCalculations("-5", "-5", "-0.25");
+        assertEquals(expectedErrorMessage, actualErrorMessage);
+    }
+
 
 }
