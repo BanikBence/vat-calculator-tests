@@ -29,7 +29,7 @@ public class MainPage {
     static By priceWithoutVatRadioBtn = By.xpath("//*[@id='F1']/following-sibling::label");
     static By valueAddedTaxRadioBtn = By.xpath("//*[@id='F2']/following-sibling::label");
     static By priceIncludedVatRadioBtn = By.xpath("//*[@id='F3']/following-sibling::label");
-    static By negativeInputErrorMessage = By.xpath(("//*[@id='chart_div']/div/div/span"));
+    static By ErrorMessage = By.xpath(("//*[@id='chart_div']/div/div/span"));
     static By priceWithoutVatInput = By.xpath("//*[@id='NetPrice']");
     static By valueAddedTaxInput = By.xpath("//*[@id='VATsum']");
     static By priceIncludedVatInput = By.xpath("//*[@id='Price']");
@@ -41,7 +41,14 @@ public class MainPage {
     }
 
     public void assertNegativeErrorMessage() {
-        assertEquals("Negative values are invalid for a pie chart.×", driver.findElement(negativeInputErrorMessage));
+        wait.until(ExpectedConditions.visibilityOf(driver.findElement(ErrorMessage)));
+        assertEquals("Negative values are invalid for a pie chart.×", driver.findElement(ErrorMessage).getText());
+
+    }
+
+    public void assertTooBigInputErrorMessage() {
+        wait.until(ExpectedConditions.visibilityOf(driver.findElement(ErrorMessage)));
+        assertEquals("amount >999.999.999", driver.findElement(ErrorMessage).getText());
 
     }
 

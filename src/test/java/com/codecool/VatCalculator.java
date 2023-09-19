@@ -22,10 +22,19 @@ class VatCalculatorTest {
 
     @AfterEach
     void tearDown() {
-        //  mainPage.quitDriver();
+        mainPage.quitDriver();
     }
 
     @Test
+    public void countrySelectionDropdownTest() {
+        mainPage.selectCountry("Austria");
+        mainPage.selectCountry("Saint Vincent and the Grenadines");
+        mainPage.selectCountry("France");
+
+    }
+
+    @Test
+
     public void expectedTaxOptionsAppearAfterCountrySelection() {
         for (WebElement element : mainPage.getVatRates()) {
             assertTrue(element.isDisplayed());
@@ -48,7 +57,6 @@ class VatCalculatorTest {
 
         mainPage.click18VatRadioBtn();
         mainPage.assertPriceWithoutVatCalculations("5", "0.90", "5.90");
-
 
         mainPage.click27VatRadioBtn();
         mainPage.assertPriceWithoutVatCalculations("5", "1.35", "6.35");
@@ -83,31 +91,24 @@ class VatCalculatorTest {
     public void negativeInputInAnyFieldsProducesErrorMessage() {
         mainPage.click5VatRadioBtn();
 
+        mainPage.assertPriceWithoutVatCalculations("-5", "-0.25", "-5.25");
+        mainPage.assertNegativeErrorMessage();
 
+        mainPage.assertValueAddedTaxCalculations("-5", "-100.00", "-105.00");
+        mainPage.assertNegativeErrorMessage();
+
+        mainPage.assertPriceIncVatCalculations("-5", "-4.76", "-0.24");
+        mainPage.assertNegativeErrorMessage();
     }
 
-//    @Test
-//    // There is no way to put too big of a number to any of the input fields
-//    // The error we expect will never appear
-//    // it's not automatable because selenium can't handle it, it just has a bug
-//    public void anyInputFieldWithMoreThanABillionProducesAnErrorMessage() {
-//        WebElement valueAddedTaxBtn = driver.findElement(By.xpath("//*[@id='F2']/following-sibling::label"));
-//        waitAndClick(valueAddedTaxBtn);
-//
-//        WebElement valueAddedTaxInput = driver.findElement(By.xpath("//*[@id='VATsum']"));
-//        valueAddedTaxInput.sendKeys("10000000000000000000000000000");
-//
-//        String expectedErrorMessage = "amount >999.999.999";
-//        String actualErrorMessage;
-//
-//        try {
-//            actualErrorMessage = driver.findElement(By.xpath(("//*[@id='chart_div']/div/div/span"))).getText();
-//        } catch (NoSuchElementException e) {
-//            actualErrorMessage = driver.findElement(By.xpath(("//*[@id='chart_div']/div/div/span"))).getText();
-//            System.out.println("the element simply does not exist, so I don't think there is a way to automate it");
-//        } finally {
-//            driver.quit();
-//        }
-////        assertNotEquals(expectedErrorMessage, actualErrorMessage);
-//    }
+    @Test
+    // There is no way to put too big of a number to any of the input fields
+    // The error we expect will never appear
+    // it's not automatable because selenium can't handle it, it just has a bug
+    public void anyInputFieldWithMoreThanABillionProducesAnErrorMessage() {
+        mainPage.click5VatRadioBtn();
+
+        mainPage.assertPriceWithoutVatCalculations("10000000000000000000000", "5000000.00", "105000000");
+        mainPage.assertTooBigInputErrorMessage();
+    }
 }
