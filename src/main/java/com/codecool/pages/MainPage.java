@@ -24,12 +24,15 @@ public class MainPage {
     static By fivePercentVatRadioBtn = By.xpath("//*[@id='VAT_5']/following-sibling::label");
     static By eighteenPercentVatRadioBtn = By.xpath("//*[@id='VAT_18']/following-sibling::label");
     static By twentySevenPercentVatRadioBtn = By.xpath("//*[@id='VAT_27']/following-sibling::label");
-    static By priceWithoutVatInput = By.xpath("//*[@id='VATpct2']");
-    static By valueAddedTax = By.xpath("//*[@id='VATsum']");
-    static By priceIncludedVat = By.xpath("//*[@id='Price']");
+    static By priceWithoutVatInputLabel = By.xpath("//*[@id='VATpct2']");
     static By consentBtn = By.xpath("//*[@class='fc-button fc-cta-consent fc-primary-button']");
     static By priceWithoutVatRadioBtn = By.xpath("//*[@id='F1']/following-sibling::label");
+    static By valueAddedTaxRadioBtn = By.xpath("//*[@id='F2']/following-sibling::label");
+    static By priceIncludedVatRadioBtn = By.xpath("//*[@id='F3']/following-sibling::label");
     static By negativeInputErrorMessage = By.xpath(("//*[@id='chart_div']/div/div/span"));
+    static By priceWithoutVatInput = By.xpath("//*[@id='NetPrice']");
+    static By valueAddedTaxInput = By.xpath("//*[@id='VATsum']");
+    static By priceIncludedVatInput = By.xpath("//*[@id='Price']");
 
     public MainPage() {
         driver = WebdriverManager.getInstance();
@@ -45,17 +48,17 @@ public class MainPage {
     public void clickConsentBtn() {
         waitAndClick(driver.findElement(consentBtn));
     }
-
-    public String getActualPriceIncludedVatValue() {
-        return driver.findElement(priceIncludedVat).getAttribute("value");
-    }
-
-    public String getActualValueAddedTaxValue() {
-        return driver.findElement(valueAddedTax).getAttribute("value");
-    }
+//
+//    public String getActualPriceIncludedVatValue() {
+//        return driver.findElement(priceIncludedVatInput).getAttribute("value");
+//    }
+//
+//    public String getActualValueAddedTaxValue() {
+//        return driver.findElement(valueAddedTax).getAttribute("value");
+//    }
 
     public static String getActualPriceWithoutVatValue() {
-        return driver.findElement(priceWithoutVatInput).getAttribute("value");
+        return driver.findElement(priceWithoutVatInputLabel).getAttribute("value");
     }
 
     public List<WebElement> getVatRates() {
@@ -89,38 +92,30 @@ public class MainPage {
     }
 
     public void assertPriceWithoutVatCalculations(String input, String expectedValueAddedTaxValue, String expectedPriceIncludedVatValue) {
-
+        waitAndClick(driver.findElement(priceWithoutVatRadioBtn));
         waitAndClick(driver.findElement(priceWithoutVatInput));
         driver.findElement(priceWithoutVatInput).sendKeys(input);
 
-        assertEquals(expectedValueAddedTaxValue, getActualValueAddedTaxValue());
-        assertEquals(expectedPriceIncludedVatValue, getActualPriceIncludedVatValue());
+        assertEquals(expectedValueAddedTaxValue, driver.findElement(valueAddedTaxInput).getAttribute("value"));
+        assertEquals(expectedPriceIncludedVatValue, driver.findElement(priceIncludedVatInput).getAttribute("value"));
     }
 
     public void assertValueAddedTaxCalculations(String input, String expectedPriceWithoutVatValue, String expectedPriceIncludedVatValue) {
-        WebElement valueAddedTaxInput = driver.findElement(By.xpath("//*[@id='VATsum']"));
-        waitAndClick(valueAddedTaxInput);
-        valueAddedTaxInput.sendKeys(input);
+        waitAndClick(driver.findElement(valueAddedTaxRadioBtn));
+        waitAndClick(driver.findElement(valueAddedTaxInput));
+        driver.findElement(valueAddedTaxInput).sendKeys(input);
 
-        String actualPriceWithoutVatValue = driver.findElement(By.xpath("//*[@id='NetPrice']")).getAttribute("value");
-
-        String actualPriceIncludedVatValue = driver.findElement(By.xpath("//*[@id='Price']")).getAttribute("value");
-
-        assertEquals(expectedPriceWithoutVatValue, actualPriceWithoutVatValue);
-        assertEquals(expectedPriceIncludedVatValue, actualPriceIncludedVatValue);
+        assertEquals(expectedPriceWithoutVatValue, driver.findElement(priceWithoutVatInput).getAttribute("value"));
+        assertEquals(expectedPriceIncludedVatValue, driver.findElement(priceIncludedVatInput).getAttribute("value"));
     }
 
-    public void assertPriceIncVatCalculations(String input, String expectedPriceWithoutVatValue, String expectedPriceIncludedVatValue) {
-        WebElement priceIncludedVatInput = driver.findElement(By.xpath("//*[@id='Price']"));
-        waitAndClick(priceIncludedVatInput);
-        priceIncludedVatInput.sendKeys(input);
+    public void assertPriceIncVatCalculations(String input, String expectedPriceWithoutVatValue, String expectedValueAddedTax) {
+        waitAndClick(driver.findElement(priceIncludedVatRadioBtn));
+        waitAndClick(driver.findElement(priceIncludedVatInput));
+        driver.findElement(priceIncludedVatInput).sendKeys(input);
 
-        String actualPriceWithoutVatValue = driver.findElement(By.xpath("//*[@id='NetPrice']")).getAttribute("value");
-
-        String actualValueAddedTaxValue = driver.findElement(By.xpath("//*[@id='VATsum']")).getAttribute("value");
-
-        assertEquals(expectedPriceWithoutVatValue, actualPriceWithoutVatValue);
-        assertEquals(expectedPriceIncludedVatValue, actualValueAddedTaxValue);
+        assertEquals(expectedPriceWithoutVatValue, driver.findElement(priceWithoutVatInput).getAttribute("value"));
+        assertEquals(expectedValueAddedTax, driver.findElement(valueAddedTaxInput).getAttribute("value"));
     }
 
     public static void quitDriver() {
